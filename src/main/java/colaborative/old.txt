@@ -1,0 +1,97 @@
+ public static class TextDouble implements WritableComparable<TextDouble> {
+
+        private static final String TDDELIMETER = "<TDEL>";
+
+        public Text str = new Text();
+        public DoubleWritable val = new DoubleWritable();
+
+        public TextDouble(){}
+
+        public TextDouble(Text str, DoubleWritable val)
+        {
+            this.str = str;
+            this.val = val;
+        }
+
+        public void parseString(String in)
+        {
+            String[] args = in.split(TDDELIMETER);
+            str = new Text(args[0]);
+            val = new DoubleWritable(Double.parseDouble(args[1]));
+        }
+
+
+        @Override
+        public int compareTo(TextDouble o) {
+            int cmp1 = str.compareTo(o.str); // str
+            int cmp2 = val.compareTo(o.val); // val
+
+            if (!(cmp1 == 0)){
+                return cmp1;
+            }
+            else return -1* cmp2;
+        }
+
+        @Override
+        public void write(DataOutput out) throws IOException {
+            str.write(out);
+            val.write(out);
+        }
+
+        @Override
+        public void readFields(DataInput in) throws IOException {
+            str.readFields(in);
+            val.readFields(in);
+        }
+
+        @Override
+        public int hashCode() {
+            return str.hashCode() * 163 + val.hashCode() * 63;
+        }
+
+        @Override
+        public String toString()
+        {
+            return str.toString() + TDDELIMETER + val.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof TextDouble) {
+                TextDouble tp = (TextDouble) obj;
+                return str.equals(tp.str) ;//&& val.equals(tp.val);
+            }
+            return false;
+        }
+    }
+
+    public static class QueryDistancesPartitioner extends Partitioner<TextDouble, LongWritable> {
+        @Override
+        public int getPartition(TextDouble key, LongWritable val, int numPartitions) {
+            return key.toString().hashCode() % numPartitions;
+        }
+    }
+
+    public static class QueryDistancesKeyComparator extends WritableComparator {
+        protected QueryDistancesKeyComparator() {
+            super(TextDouble.class, true);
+        }
+
+        @Override
+        public int compare(WritableComparable a, WritableComparable b) {
+            return ((TextDouble)a).compareTo((TextDouble) b);
+        }
+    }
+
+    public static class QueryDistancesGrouper extends WritableComparator {
+        protected QueryDistancesGrouper() {
+            super(TextDouble.class, true);
+        }
+
+        @Override
+        public int compare(WritableComparable a, WritableComparable b) {
+            Text a_first = ((TextDouble)a).str;
+            Text b_first = ((TextDouble)b).str;
+            return a_first.compareTo(b_first);
+        }
+    }
