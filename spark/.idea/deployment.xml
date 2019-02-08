@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="pzaydel@95.163.210.204:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pzaydel/InfoSearch/hw/hw5/python-spark" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="sphere-hdp1.g">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/user_beh/spark" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

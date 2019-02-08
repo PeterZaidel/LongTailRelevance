@@ -2,9 +2,16 @@ import xgboost as xgb
 from sklearn.datasets import load_svmlight_file
 import numpy as np
 from time import time
+from matplotlib import pyplot as plt
+from SparseInteractions import SparseInteractions
 
-xgb_train_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/xgb_train/part-r-00000'
-xgb_test_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/xgb_test/part-r-00000'
+# xgb_train_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/xgb_train/part-r-00000'
+# xgb_test_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/xgb_test/part-r-00000'
+
+xgb_train_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/new_join/train.txt'
+xgb_test_file = '/media/peter/DATA1/Data/InfoSearch/hw5/xgb/new_join/test.txt'
+
+
 sample_submission_file = '/media/peter/DATA1/Data/InfoSearch/hw5/data/sample.csv'
 models_dir = '/media/peter/DATA1/Data/InfoSearch/hw5/results/models/'
 predictions_dir = '/media/peter/DATA1/Data/InfoSearch/hw5/results/predictions/'
@@ -288,9 +295,16 @@ urls_test, X_test, y_test, qid_test, group_test = load_data(xgb_test_file)
 # find_similar(urls_train, qid_train)
 # find_similar(urls_test, qid_test)
 
+interactions = SparseInteractions()
 
-model = XgbModel(params = {'objective': 'rank:pairwise', 'eta': 0.01, 'max_depth': 6, 'eval_metric': 'ndcg@5',
-          'nthread': 4}, num_boost_round=2000)
+X_train = interactions.fit_transform(X_train)
+X_test = interactions.fit_transform(X_test)
+
+
+model = XgbModel(params = {'objective': 'rank:pairwise', 'eta': 0.01,
+                           # 'lambda':10.0, 'alpha': 3.0,
+                           'max_depth': 6, 'eval_metric': 'ndcg@5',
+          'nthread': 4}, num_boost_round=1500)
 
 #model = FeatureModel(feature_idx=3)
 #model.fit(X_train, y_train, group_train, X_val, y_val, group_val)
@@ -299,7 +313,7 @@ model.fit(X_train, y_train, group_train)
 # exit(0)
 
 
-model_name = model.get_model_name() + '_features2'
+model_name = model.get_model_name() + '_features2_tfidf_3_7'
 sample_submission = load_submission(sample_submission_file)
 
 prediction_test = model.predict(X_test, group_test)
@@ -310,91 +324,5 @@ save_submission(sample_submission, urls_test, qid_test, prediction_test,
 
 
 
-#
-#
-# dtrain = xgb.DMatrix(data=X_train, label=y_train)
-# dtrain.set_group(group_train)
-#
-# # dval = xgb.DMatrix(data = X_val, label = y_val)
-# # dval.set_group(group_val)
-#
-# dtest = xgb.DMatrix(data=X_test)
-# dtest.set_group(group_test)
-#
-# sample_submission = load_submission(sample_submission_file)
-#
-# # In[11]:
-#
-#
-# def save_arr(arr, filename):
-#     file = open(filename, 'w')
-#     for v in arr:
-#         file.write(str(v) + '\n')
-#     file.close()
-#
-#
-# asessors_train_submission = get_submission(qid_train, y_train)
-#
-#
-#
-# params = {'objective': 'rank:pairwise', 'eta': 0.1, 'max_depth': 2, 'eval_metric': 'ndcg@5',
-#           'nthread': 2}
-#
-# print("MY OBJECTIVE")
-# evres = dict()
-# xgb_model = xgb.train(params, dtrain, num_boost_round=500, evals=[(dtrain, 'train')],
-#                       evals_result=evres,
-#                       verbose_eval=True)
-#
-# prediction_test = xgb_model.predict(dtest)
-#
-# save_submission(sample_submission, urls_test, qid_test, prediction_test,
-#                 predictions_dir + model_name + '_submission.txt')
-#
-# np.save(predictions_dir + model_name + '_test_pred.np', prediction_test)
-#
-# my_submission_test = get_submission(qid_test, prediction_test)
-# fen_submission = load_submission('fen_submission.txt')
-
-# In[26]:
-
-#
-# fen_ndcg = calc_ndcg(my_submission_test, fen_submission, k=5)
-# print("FEN NDCG:")
-# print("--MEAN: ", fen_ndcg.mean())
-# print("--TRUE_RANKED: ", fen_ndcg[fen_ndcg > 0.95].shape[0])
-# print("--ALL_RANKED: ", fen_ndcg.shape[0])
-# print("--INCORRECT: ", fen_ndcg[fen_ndcg == 0.0].shape[0])
-#
-#
-# prediction_train = xgb_model.predict(dtrain)
-# my_train_submission = get_submission(qid_train, prediction_train)
-#
-#
-# asessors_train_submission = get_submission(qid_train, y_train)
-# train_ndcg = calc_ndcg(my_train_submission, asessors_train_submission, k =5)
-#
-# print("MY: ", my_train_submission)
-# print("ACESSORS: ", asessors_train_submission)
-#
-# print("TRAIN NDCG: ")
-# print("--MEAN: ", train_ndcg.mean())
-# print("--TRUE_RANKED: ", train_ndcg[train_ndcg > 0.95].shape[0])
-# print("--ALL_RANKED: ", train_ndcg.shape[0])
-# print("--INCORRECT: ", train_ndcg[train_ndcg == 0.0].shape[0])
-
-
-# for qid in np.unique(qid_train):
-#     q_idxs = np.argwhere(qid_train == qid).ravel()
-#     my_scores = prediction_train[q_idxs]
-#     ass_scores = y_train[q_idxs]
-#
-#     my_sort_idxs = np.argsort(my_scores)[::-1]
-#
-#     print('QID: ', qid )
-#     print("--MY_SCORES: ", my_scores[my_sort_idxs])
-#     print("--ASS_SCORES: ", ass_scores[my_sort_idxs])
-
-
-
-
+xgb.plot_importance(model.xgb_model)
+plt.show()

@@ -90,24 +90,19 @@ public class Utils {
         return res.toArray(new String[0]);
     }
 
-    public static String prepareQuery(String query)
-    {
-        return query.toLowerCase().trim();
-    }
-
     private static String[] replace_header = {"http://", "https://", "www."};
     public static String prepareUrl(String url)
     {
-         String inputUrl = url;
-         url = url.trim();
-         for(String to_replace : replace_header)
-         {
-             if(url.indexOf(to_replace) == 0)
-             {
-                 url = url.substring(to_replace.length());
-             }
-         }
-         return url;
+        String inputUrl = url;
+        url = url.trim();
+        for(String to_replace : replace_header)
+        {
+            if(url.indexOf(to_replace) == 0)
+            {
+                url = url.substring(to_replace.length());
+            }
+        }
+        return url;
 //        return url.replace("http://", "").replace("https://", "").trim();
 //        int protocol_pos = url.indexOf("://");
 //        if (protocol_pos != -1) {
@@ -116,6 +111,13 @@ public class Utils {
 //
 //        return url.trim();
     }
+
+    public static String prepareQuery(String query)
+    {
+        return query.toLowerCase().trim();
+    }
+
+
 
 
     public static void readToHashMap(Configuration conf, String filepath, HashMap<String, Integer> map,
@@ -273,6 +275,12 @@ public class Utils {
         {
             res.append(s).append(delimeter);
         }
+
+        if(res.length() <= delimeter.length())
+        {
+            return "";
+        }
+
         res = new StringBuilder(res.substring(0, res.length() - delimeter.length()));
         return res.toString();
     }

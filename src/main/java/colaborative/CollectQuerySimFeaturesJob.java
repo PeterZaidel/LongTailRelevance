@@ -60,12 +60,19 @@ public class CollectQuerySimFeaturesJob extends Configured implements Tool {
 
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            QRecord record = new QRecord();
-            record.parseString(value.toString());
 
-            QueryFeatures queryFeatures = new QueryFeatures(record);
-            context.write(new Text(queryFeatures.getKey()),
-                    new Text(queryFeatures.getValue()));
+            try {
+                QRecord record = new QRecord();
+                record.parseString(value.toString());
+
+                QueryFeatures queryFeatures = new QueryFeatures(record);
+                context.write(new Text(queryFeatures.getKey()),
+                        new Text(queryFeatures.getValue()));
+            }
+            catch (Exception e)
+            {
+                System.out.println("sss");
+            }
 
 //            String resValue = "";
 //            String resKey = record.query;
@@ -234,7 +241,7 @@ public class CollectQuerySimFeaturesJob extends Configured implements Tool {
         String input_file = args[0];
 
         String output_file = args[1];
-        deleteDirectory(new File(output_file));
+        Utils.deleteDirectory(new File(output_file));
 
         String queries_filename = args[2];
         String urls_filename = args[3];
@@ -286,15 +293,6 @@ public class CollectQuerySimFeaturesJob extends Configured implements Tool {
         return job;
     }
 
-    static boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
-        }
-        return directoryToBeDeleted.delete();
-    }
 
     public static void main(String[] args) throws Exception {
         System.out.println("CollectQuerySimFeaturesJob Started!");

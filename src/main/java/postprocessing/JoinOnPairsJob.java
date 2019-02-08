@@ -60,29 +60,34 @@ class JoinOnPairsJob extends Configured implements Tool {
         }
 
 
+        public void map_pairs_file(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String val = value.toString();
+
+            int query_len = val.indexOf(DELIMETER);
+            String query = val.substring(0, query_len);
+
+            val = val.substring(query_len+1);
+
+            int url_len = val.indexOf(DELIMETER);
+            String url = val.substring(0, url_len);
+
+            String data = val.substring(url_len+1);
+            int mark = Integer.parseInt(data);
+
+            String outKey = query + DELIMETER + url;
+            String outValue = PAIRS_FILE_TAG + TAG_DELIMETER + Integer.toString(mark);
+
+            context.write(new Text(outKey), new Text(outValue));
+        }
+
+
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
             String filePathString = context.getInputSplit().toString();
             if(filePathString.contains(pairs_filename))
             {
-                String val = value.toString();
-
-                int query_len = val.indexOf(DELIMETER);
-                String query = val.substring(0, query_len);
-
-                val = val.substring(query_len+1);
-
-                int url_len = val.indexOf(DELIMETER);
-                String url = val.substring(0, url_len);
-
-                String data = val.substring(url_len+1);
-                int mark = Integer.parseInt(data);
-
-                String outKey = query + DELIMETER + url;
-                String outValue = PAIRS_FILE_TAG + TAG_DELIMETER + Integer.toString(mark);
-
-                context.write(new Text(outKey), new Text(outValue));
+              map_pairs_file(key, value, context);
             }
             else
             {
